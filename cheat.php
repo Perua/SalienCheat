@@ -76,7 +76,7 @@ Msg( "{background-blue}Welcome to SalienCheat for SteamDB" );
 
 if( ini_get( 'precision' ) < 18 )
 {
-	Msg( '{grey}Fixed php float precision (was ' . ini_get( 'precision' ) . ')' );
+	Msg( '{teal}Fixed php float precision (was ' . ini_get( 'precision' ) . ')' );
 	ini_set( 'precision', '18' );
 }
 
@@ -181,7 +181,7 @@ do
 		}
 	}
 
-	Msg( '   {grey}Waiting ' . number_format( $WaitTimeBeforeFirstScan, 3 ) . ' (+' . number_format( $SkippedLagTime, 3 ) . ' second lag) seconds before rescanning planets...' );
+	Msg( '   {teal}Waiting ' . number_format( $WaitTimeBeforeFirstScan, 3 ) . ' (+' . number_format( $SkippedLagTime, 3 ) . ' second lag) seconds before rescanning planets...' );
 
 	usleep( $WaitTimeBeforeFirstScan * 1000000 );
 
@@ -195,14 +195,14 @@ do
 
 	if( $LagAdjustedWaitTime > 0 )
 	{
-		Msg( '   {grey}Waiting ' . number_format( $LagAdjustedWaitTime, 3 ) . ' remaining seconds before submitting score...' );
+		Msg( '   {teal}Waiting ' . number_format( $LagAdjustedWaitTime, 3 ) . ' remaining seconds before submitting score...' );
 
 		usleep( $LagAdjustedWaitTime * 1000000 );
 	}
 
 	$Data = SendPOST( 'ITerritoryControlMinigameService/ReportScore', 'access_token=' . $Token . '&score=' . GetScoreForZone( $Zone ) . '&language=english' );
 
-	if( $Data[ 'eresult' ] == 93 )
+	if( empty( $Data[ 'response' ][ 'new_score' ] ) )
 	{
 		$LagAdjustedWaitTime = min( 10, round( $SkippedLagTime ) );
 
@@ -377,7 +377,7 @@ function GetPlanetState( $Planet, &$ZonePaces, $WaitTime )
 			Msg( '{lightred}!! Unknown zone type: ' . $Zone[ 'type' ] );
 		}
 
-		$Cutoff = 0.99;
+		$Cutoff = $Zone[ 'difficulty' ] < 2 ? 0.90 : 0.99;
 
 		if( isset( $ZonePaces[ $Planet ][ $Zone[ 'zone_position' ] ] ) )
 		{
@@ -395,7 +395,7 @@ function GetPlanetState( $Planet, &$ZonePaces, $WaitTime )
 
 			$TimeDelta = array_sum( $DifferenceTimes ) / count( $DifferenceTimes );
 			$PaceCutoff = ( array_sum( $Differences ) / count( $Differences ) ) * $TimeDelta;
-			$Cutoff = 1.0 - max( 0.01, $PaceCutoff / 7 );
+			$Cutoff = 1.0 - max( 1.0 - $Cutoff, $PaceCutoff / 7 );
 			$PaceTime = $PaceCutoff > 0 ? ceil( ( 1 - $Zone[ 'capture_progress' ] ) / $PaceCutoff * $WaitTime ) : 1000;
 
 			if( $PaceCutoff > 0.015 )
@@ -817,7 +817,7 @@ function Msg( $Message, $EOL = PHP_EOL, $printf = [] )
 			'{green}',
 			'{yellow}',
 			'{lightred}',
-			'{grey}',
+			'{teal}',
 			'{background-blue}',
 		],
 		$DisableColors ? '' : [
